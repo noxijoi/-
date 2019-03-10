@@ -10,19 +10,22 @@
         <h1>МРЗвИС. Лабораторная работа №1</h1>
         <h2>Вычисление целочисленного частного пары 6-разрядных чисел делением без восстановления частичного остатка.</h2>
         <p>
-            <strong>Первые числа пар</strong>
+            <span>Первые числа пар </span>
             <input id ="FirstNumbers" pattern="[1-9]([0-9]+)?(,(\s+)?[1-9]([0-9]+)?){0,}$"><br>
 
         </p>
         <p>
-            <strong>Вторые числа пар</strong>
+            <span>Вторые числа пар </span>
             <input id ="SecondNumbers" pattern="[1-9]([0-9]+)?(,(\s+)?[1-9]([0-9]+)?){0,}$"><br>
-            
         </p>
-        <button class="startButton" onclick="start()">Обработать</button>
+        <p>
+            <span>Такты </span>
+            <input id="Time" pattern="^[0-9]+$"><br>
+        </p>
+        <p>
+            <button class="startButton" onclick="start()">Обработать</button>   
+        </p>
 
-        <div id="tableDiv">
-            <table id='table'></table>
-        </div>
+        <div id="TableDiv"></div>
     </body>
 </html>
