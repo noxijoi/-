@@ -1,8 +1,9 @@
 var BIT_DEPTH = 6;
+var STAGES_PER_CICLE = 3;
 function decToBin(num){
     var maxInt = Math.pow(2, BIT_DEPTH);
     if( num >= maxInt){
-        alert("число" + num + "больше" + maxInt);
+        alert("число " + num + "больше " + maxInt);
         return;
     }
     var result = new Array(BIT_DEPTH + 1);
@@ -24,11 +25,10 @@ function decToBin(num){
     }
     return result;
 }
-
 function binToDec(bitArr){
     var result = 0;
     var buf = 0;
-    for(var i = bitArr.length - 1; i > 0; i--){
+    for(var i = bitArr.length - 1; i >= 0; i--){
         if(bitArr[i] == 1){
             buf = 1;
             result += Math.pow(2, bitArr.length - i - 1);
@@ -36,43 +36,17 @@ function binToDec(bitArr){
     }
     return result;
 }
-
-function shiftUntilMatch(bitArr1, bitArr2){
-    var n1 = 0;
-    var n2 = 0;
-    var i = 0;
-    for(var i = 0; n1 == 0 && i < bitArr1.length; i++){
-        if( bitArr1[i] == 1){
-            n1 = i;
-        }
-    }
-    for(var i = 0; n2 == 0 && i < bitArr2.length; i++){
-        if( bitArr2[i] == 1){
-            n2 = i;
-        }
-    }
-    var shift = n2 - n1;
-    while( n1 < n2){
-        leftShift(bitArr2);
-        n2--;
-    }
-    return shift;
-}
-
 function isPositive(binNum)
 {
     return binNum[0] == 0;
 }
-
-function leftShift(bitArr){
-    var sign = bitArr.shift();
-    bitArr.shift();
-    bitArr.push(0);
-    bitArr.unshift(sign);
-    //а надо ли
-    return bitArr;
+function shifRAReg(regR, regA){
+    var sign = regR.shift();
+    var bit = regA.shift();
+    regR.push(bit);
+    regA.push(0);
+    return sign;
 }
-
 function sumBinNumbers(num1, num2){
     var result = new Array(BIT_DEPTH + 1);
     var carry = 0;
@@ -85,7 +59,6 @@ function sumBinNumbers(num1, num2){
     }
     return result;
 }
-
 function twosComplemnetCode(num){
     var result = new Array(BIT_DEPTH + 1);
     for(var i = 0; i < num.length; i++ ){
@@ -95,59 +68,51 @@ function twosComplemnetCode(num){
     result = sumBinNumbers(result, decToBin(1));
     return result;
 }
-
-function binCompleteToDec(num){
-    var result = new Array(BIT_DEPTH + 1);
-    for(var i = 0; i < num.length; i++ ){
-        var ch = +!num[i];
-        result[i]= ch;
-    }
-    result =  + binToDec(result);
-    result += +1;
-    return result;
-}
-
 function setYoungerDigit(binNum, value){
     binNum[binNum.length - 1] = value;
-};
-
+}
 function toIntArr(arr){
     for(var i = 0; i < arr.length; i++){
         if(arr[i].match(/^\d+$/)){
             arr[i] = + arr[i];
-        }
-        else {
+        }else {
             alert("incorrect input data, can't translate "+ arr[i] + " to int");
             throw new SyntaxError("incorrect input data, can't translate "+ arr[i] + " to int");
-        }   
+        } 
+        if(arr[i] == 0 ){
+            alert("деление на ноль!")
+            throw new SyntaxError("деление на ноль!");
+        }
     }
     return arr;
 }
-
-function setCellRegInfo(regA, regB, regR, row, col){
+function setCellRegInfo(regA, regR, row, col){
     var cell = document.getElementById("r" + row + "c" + col);
     cell.innerHTML ="A = " + formatView(regA)+ "<br>"
-    + "B = " + formatView(regB) + "<br>"
     + "R = " + formatView(regR) + "<br>";
 }
 function setCellInfo(info, row, col){
     var cell = document.getElementById("r" + row + "c" + col);
-    cell.innerHTML = info;
+    cell.innerHTML += info;
 }
-
 function formatView(reg){
     var result ="";
-    result += reg[0] +".";
-    for(var i = 1; i < 4; i++){
-        result += reg[i];
-    }
-    result += " ";
-    for(var i = 4; i < reg.length; i++){
-        result += reg[i];
+    if(reg.length % 2  == 1){
+        result += reg[0] +".";
+        for(var i = 1; i < 4; i++){
+            result += reg[i];
+        }
+        result += " ";
+        for(var i = 4; i < reg.length; i++){
+            result += reg[i];
+        }
+    } else{
+        for(var i = 0; i < reg.length; i++){
+            result += reg[i];
+        }
     }
     return result;
 }
-
 function generateTable(numOfPair){
     var tableDiv = document.getElementById("TableDiv");
     document.body.removeChild(tableDiv);
@@ -161,10 +126,10 @@ function generateTable(numOfPair){
         var name;
         switch(columnIndex % 3){
             case 1:
-                name = columnIndex + "<br>вычитание";
+                name = columnIndex + "<br>сдвиг";
                 break;
             case 2:
-                name = columnIndex + "<br>сдвиг";
+                name = columnIndex + "<br>вычитание";
                 break;
             case 0:
                 name = columnIndex + "<br>установка младшего бита";
@@ -180,10 +145,12 @@ function generateTable(numOfPair){
         row.appendChild(thCell);
     }
     table.appendChild(row);
-    for (var rowIndex = 1; rowIndex <= numOfPair +1; rowIndex++) {
+    var rowNumber = numOfPair + 1 + BIT_DEPTH * STAGES_PER_CICLE;
+    var colNumber = STAGES_PER_CICLE * BIT_DEPTH + 2;
+    for (var rowIndex = 1; rowIndex < rowNumber;  rowIndex++) {
         var row = document.createElement("tr");
         row.setAttribute("id", "r" + rowIndex);
-        for (var columnIndex = 0; columnIndex < 3 * BIT_DEPTH + 2; columnIndex++) {
+        for (var columnIndex = 0; columnIndex < colNumber; columnIndex++) {
             var cell = document.createElement("td");
             cell.setAttribute("id", "r" + rowIndex + "c" + columnIndex);
             row.appendChild(cell);
@@ -193,7 +160,6 @@ function generateTable(numOfPair){
     tableDiv.appendChild(table);
     document.body.appendChild(tableDiv);
 }
-
 function start(){
     var firstString = document.getElementById('FirstNumbers').value;
     var secondString = document.getElementById('SecondNumbers').value;
@@ -219,8 +185,9 @@ function start(){
         setCellInfo(info, i + 1, 0); 
     }
     //перевод в 2сс
-    for(var i = 0; i< firstVector.length; i++){
+    for(var i = 0; i < firstVector.length; i++){
         firstVector[i] = decToBin(firstVector[i]);
+        firstVector[i].shift();
         secondVector[i] = decToBin(secondVector[i]);
     }
 
@@ -233,59 +200,53 @@ function start(){
         registersB[i] = secondVector[i];
         registersP[i] = decToBin(0);
     }
-    //первоначальный сдвиг
-    var numOfShift = new Array(numOfPair);
-    for(var i = 0; i < numOfPair; i++){
-        numOfShift[i] = shiftUntilMatch(registersA[i],registersB[i]);
+    var rowCol = numOfPair + BIT_DEPTH * STAGES_PER_CICLE;
+    for( var  i = 1; i < rowCol; i++){
+        setCellInfo("<br>Тактов:<br>"+ i, i, 0);
+        setCellInfo("<br>Тактов:<br>"+ i +"<br>", i, 3 * BIT_DEPTH + 1);
     }
-    var time = 0;
-    var stagesPerCicle = 3;
     for(var cicle = 0; cicle < BIT_DEPTH; cicle++){
-        //1
+        var signs = new Array(numOfPair);
+        var stage = 0;
+        //1 shift
         for(var i = 0; i < numOfPair; i++){
-            if(cicle < numOfShift[i] + 1){
-                if(isPositive(registersA[i])){
-                    registersA[i] = sumBinNumbers(registersA[i],
-                         twosComplemnetCode(registersB[i]));
-                } else{
-                    registersA[i] = sumBinNumbers(registersA[i],
-                        registersB[i]);
-                }
-            }
-            setCellRegInfo(registersA[i], registersB[i], registersP[i], 
-                i + 1, cicle * stagesPerCicle + 1 );
-        }
-        time += tactPerStage;
-        setCellInfo("Time: " + time, numOfPair + 1, cicle * stagesPerCicle + 1 );
-        //2
+            signs[i] = shifRAReg(registersP[i], registersA[i]);
+            var row = i + 1 + cicle * STAGES_PER_CICLE + stage;
+            setCellRegInfo(registersA[i], registersP[i],
+                row, cicle * STAGES_PER_CICLE + 1 );
+        }  
+        stage++;  
+        //2 submit or add
         for(var i = 0; i < numOfPair; i++){
-            if(cicle < numOfShift[i] + 1){
-                registersA[i] =  leftShift(registersA[i]);
-                registersP[i] =  leftShift(registersP[i]);
+            if(signs[i] == 0){
+                registersP[i] = sumBinNumbers(registersP[i],
+                twosComplemnetCode(registersB[i]));
+            } else{
+                registersP[i] = sumBinNumbers(registersP[i],
+                    registersB[i]);
             }
-            setCellRegInfo(registersA[i], registersB[i], registersP[i],
-                 i + 1, cicle * stagesPerCicle + 2 );
+            var row = i + 1 + cicle * STAGES_PER_CICLE + stage;
+            setCellRegInfo(registersA[i],  registersP[i], 
+                row, cicle * STAGES_PER_CICLE + 2 );
         }
-        time += tactPerStage;
-        setCellInfo("Time: " + time, numOfPair + 1, cicle * stagesPerCicle + 2 );
-        //3
+        stage++;
+        //3 set low-order bit
         for(var i = 0; i < numOfPair; i++){
-            if(cicle < numOfShift[i] + 1){
-                if(isPositive(registersA[i])){
-                    setYoungerDigit(registersP[i], 1);
-                } else{
-                    setYoungerDigit(registersP[i], 0);
-                }
+            if(isPositive(registersP[i])){
+                setYoungerDigit(registersA[i], 1);
+            } else{
+                setYoungerDigit(registersA[i], 0);
             }
-            setCellRegInfo(registersA[i], registersB[i], registersP[i],
-                 i + 1, cicle * stagesPerCicle + 3 );
+            var row = i + 1 + cicle * STAGES_PER_CICLE + stage;
+            setCellRegInfo(registersA[i], registersP[i],
+                 row, cicle * STAGES_PER_CICLE + 3 );
         }
-        time += tactPerStage;
-        setCellInfo("Time: " + time, numOfPair + 1, cicle * stagesPerCicle + 3 );
     }
     for(var i = 0; i < numOfPair; i++){
-        var result = binToDec(registersP[i]);
-        setCellInfo("результат: <br>" + result +"<br>"+ "Тактов: " +time,
-                 i+1, stagesPerCicle * BIT_DEPTH + 1);
+        var info = binToDec(firstVector[i]) + '/' + binToDec(secondVector[i]) +"<br>";
+        var result = binToDec(registersA[i]);
+        var row = i + BIT_DEPTH * STAGES_PER_CICLE;
+        setCellInfo(info + "результат: <br>" + result +"<br>",
+                 row , STAGES_PER_CICLE * BIT_DEPTH + 1);
     } 
 }
